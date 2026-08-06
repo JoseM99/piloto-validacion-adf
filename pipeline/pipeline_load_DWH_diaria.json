@@ -1,6 +1,9 @@
 {
-	"name": "PipelinePrueba",
+	"name": "pipeline_load_DWH_diaria",
 	"properties": {
+		"folder": {
+			"name": "Load Batch/TPZ"
+		},
 		"annotations": []
 	}
 }
