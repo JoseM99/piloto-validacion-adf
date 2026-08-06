@@ -1,0 +1,94 @@
+{
+  "version": "1.0.0",
+  "_descripcion": "Listas blancas del validador de PR de Azure Data Factory. Fuente: Checklist v2 CoE Data & Analytics, filas 3 a 6. Editar aqui, nunca en el codigo.",
+
+  "carpetas_raiz_repo": {
+    "pipeline": "pipeline",
+    "dataset": "dataset",
+    "_nota": "ADF escribe estas carpetas en singular. El checklist las menciona en plural; el repo manda."
+  },
+
+  "pipeline": {
+    "regla_carpeta": {
+      "id": "ADF-01",
+      "checklist_nro": 3,
+      "criticidad": "OBL",
+      "estado": "activa",
+      "nivel_1": ["Master", "Load Batch", "Load Stream"],
+      "nivel_2_requerido": false,
+      "nivel_2": ["TPZ", "DWH", "TMS", "SAT", "DET", "SBX"],
+      "_nota_nivel_2": "El checklist solo ejemplifica Load Batch/TPZ. Hasta confirmar si el segundo nivel es obligatorio, se valida solo cuando existe."
+    },
+    "regla_nombre": {
+      "id": "ADF-02",
+      "checklist_nro": 4,
+      "criticidad": "OBL",
+      "estado": "parcial",
+      "prefijo": "pipeline",
+      "separador": "_",
+      "funcionalidades": {
+        "master": {
+          "carpeta_esperada": "Master",
+          "segmentos_despues_de_funcionalidad": "libre",
+          "_ejemplo": "pipeline_master_QUIPU"
+        },
+        "load": {
+          "carpeta_esperada": ["Load Batch", "Load Stream"],
+          "segmentos_despues_de_funcionalidad": ["aplicacion", "tipo"],
+          "_ejemplo": "pipeline_load_TPZ_Fecha"
+        }
+      },
+      "aplicaciones": ["TPZ", "DWH", "TMS", "SAT", "DET", "SBX"],
+      "tipos_carga": [],
+      "_nota_tipos_carga": "BLOQUEADO. El checklist dice literalmente 'revisar con jorge'. Con la lista vacia el validador NO evalua el ultimo segmento."
+    }
+  },
+
+  "dataset": {
+    "regla_carpeta": {
+      "id": "ADF-03",
+      "checklist_nro": 5,
+      "criticidad": "OBL",
+      "estado": "parcial",
+      "rutas_validas": [
+        "Azure/Storage",
+        "BaseDatos/Oracle"
+      ],
+      "_nota": "INCOMPLETO. El checklist solo da estos dos ejemplos y no publica el catalogo cerrado. Agregar el resto cuando el CoE lo defina."
+    },
+    "regla_nombre": {
+      "id": "ADF-04",
+      "checklist_nro": 6,
+      "criticidad": "OBL",
+      "estado": "activa",
+      "prefijo": "ds",
+      "separador": "_",
+      "tipos": ["parquet", "delta", "csv", "oracle", "sql", "bin"],
+      "aplicaciones": ["TPZ", "DWH", "TMS", "SAT", "DET", "SBX"],
+      "conexiones": ["in", "out"],
+      "_ejemplo": "ds_oracle_dwh_in"
+    }
+  },
+
+  "opciones": {
+    "comparacion_sensible_a_mayusculas": false,
+    "_nota_mayusculas": "En el checklist la aplicacion aparece en MAYUSCULAS dentro del nombre del pipeline (TPZ) y en minusculas dentro del nombre del dataset (dwh). Hasta que el CoE unifique el criterio, la comparacion es insensible a mayusculas.",
+    "artefactos_ignorados": ["linkedService", "trigger", "dataflow", "integrationRuntime", "factory", "managedVirtualNetwork", "credential"],
+    "_nota_ignorados": "El Checklist v2 no tiene reglas para estos artefactos. Se descartan sin reportar nada."
+  },
+
+  "reglas_bloqueadas": [
+    {
+      "id": "ADF-02.tipo",
+      "motivo": "El segmento [tipo] del nombre del pipeline esta marcado 'revisar con jorge' en el checklist.",
+      "responsable": "Area dueña del estandar",
+      "efecto": "El validador acepta cualquier valor en ese segmento."
+    },
+    {
+      "id": "ADF-03",
+      "motivo": "El catalogo de carpetas de dataset no esta cerrado en el checklist.",
+      "responsable": "Area dueña del estandar",
+      "efecto": "Solo se aceptan las dos rutas ejemplificadas; cualquier otra se reporta como hallazgo hasta ampliar la lista."
+    }
+  ]
+}
