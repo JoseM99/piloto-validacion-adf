@@ -55,6 +55,8 @@ jobs:
 
       - name: Armar el comentario
         run: |
+          FECHA=$(TZ='America/Lima' date '+%d/%m/%Y %H:%M')
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           {
             echo '<!-- validador-adf -->'
             echo '## Validacion de Data Factory'
@@ -71,6 +73,8 @@ jobs:
             echo ''
             echo '<sub>Reglas ADF-01 a ADF-04 del Checklist v2 · CoE Data & Analytics. '
             echo 'Corregir en el Studio de Data Factory y volver a guardar sobre la misma rama.</sub>'
+            echo ''
+            echo "<sub>Actualizado: ${FECHA} (hora de Lima) · <a href=\"${RUN_URL}\">run #${{ github.run_number }}</a></sub>"
           } > comentario.md
 
       - name: Publicar el comentario en el Pull Request
