@@ -1,0 +1,9 @@
+{
+	"name": "pipeline_load_TPZ_fecha",
+	"properties": {
+		"folder": {
+			"name": "Load Batch/TPZ"
+		},
+		"annotations": []
+	}
+}

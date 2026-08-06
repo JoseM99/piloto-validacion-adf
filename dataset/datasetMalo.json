@@ -1,0 +1,16 @@
+{
+	"name": "datasetMalo",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_piloto",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation"
+			}
+		}
+	}
+}

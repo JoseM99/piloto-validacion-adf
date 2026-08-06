@@ -1,0 +1,19 @@
+{
+	"name": "ds_oracle_dwh_in",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_piloto",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "BaseDatos/Oracle"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation"
+			}
+		}
+	}
+}
