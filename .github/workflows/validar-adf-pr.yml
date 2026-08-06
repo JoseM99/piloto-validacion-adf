@@ -1,0 +1,98 @@
+name: Validar PR de Data Factory
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'pipeline/**'
+      - 'dataset/**'
+
+concurrency:
+  group: validar-adf-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Listar los artefactos del Pull Request
+        id: archivos
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}/files" \
+            --paginate \
+            --jq '.[] | select(.status != "removed") | .filename' \
+            > todos.txt
+
+          grep -E '^(pipeline|dataset)/.*\.json$' todos.txt > artefactos.txt || true
+
+          echo "cantidad=$(wc -l < artefactos.txt)" >> "$GITHUB_OUTPUT"
+          echo "Artefactos de Data Factory en el PR:"
+          cat artefactos.txt
+
+      - name: Validar contra el estandar
+        id: nodo1
+        continue-on-error: true
+        run: |
+          if [ ! -s artefactos.txt ]; then
+            echo "Sin artefactos de Data Factory en este cambio." > salida.txt
+            cat salida.txt
+            exit 0
+          fi
+          python validators/nodo1_adf.py $(cat artefactos.txt | tr '\n' ' ') \
+            | tee salida.txt
+
+      - name: Armar el comentario
+        run: |
+          {
+            echo '<!-- validador-adf -->'
+            echo '## Validacion de Data Factory'
+            echo ''
+            if [ "${{ steps.nodo1.outcome }}" = "success" ]; then
+              echo '**Resultado: APROBADO** — sin hallazgos obligatorios.'
+            else
+              echo '**Resultado: RECHAZADO** — hay hallazgos obligatorios que impiden el pase.'
+            fi
+            echo ''
+            echo '```'
+            cat salida.txt
+            echo '```'
+            echo ''
+            echo '<sub>Reglas ADF-01 a ADF-04 del Checklist v2 · CoE Data & Analytics. '
+            echo 'Corregir en el Studio de Data Factory y volver a guardar sobre la misma rama.</sub>'
+          } > comentario.md
+
+      - name: Publicar el comentario en el Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          ID=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
+                 --jq '.[] | select(.body | contains("<!-- validador-adf -->")) | .id' \
+               | head -n 1)
+
+          if [ -n "$ID" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${ID}" \
+              -F body=@comentario.md > /dev/null
+            echo "Comentario actualizado."
+          else
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+              -F body=@comentario.md > /dev/null
+            echo "Comentario publicado."
+          fi
+
+      - name: Bloquear el pase si hay hallazgos obligatorios
+        if: steps.nodo1.outcome != 'success'
+        run: |
+          echo "El Pull Request no cumple el estandar de Data Factory."
+          exit 1
