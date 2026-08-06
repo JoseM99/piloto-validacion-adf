@@ -44,6 +44,7 @@ jobs:
         id: nodo1
         continue-on-error: true
         run: |
+          set -o pipefail
           if [ ! -s artefactos.txt ]; then
             echo "Sin artefactos de Data Factory en este cambio." > salida.txt
             cat salida.txt
