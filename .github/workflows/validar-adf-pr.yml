@@ -3,9 +3,6 @@ name: Validar PR de Data Factory
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - 'pipeline/**'
-      - 'dataset/**'
 
 concurrency:
   group: validar-adf-${{ github.event.pull_request.number }}
