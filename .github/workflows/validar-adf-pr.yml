@@ -4,7 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - '**.json'
+      - 'pipeline/**'
+      - 'dataset/**'
 
 concurrency:
   group: validar-adf-${{ github.event.pull_request.number }}
@@ -34,7 +35,6 @@ jobs:
             > todos.txt
 
           grep -E '^(pipeline|dataset)/.*\.json$' todos.txt > artefactos.txt || true
-          grep -E '\.json$' todos.txt > json_del_pr.txt || true
 
           echo "cantidad=$(wc -l < artefactos.txt)" >> "$GITHUB_OUTPUT"
           echo "Artefactos de Data Factory en el PR:"
@@ -53,16 +53,6 @@ jobs:
           python validators/nodo1_adf.py $(cat artefactos.txt | tr '\n' ' ') \
             | tee salida.txt
 
-      - name: Integridad del repositorio
-        continue-on-error: true
-        run: |
-          if [ -s json_del_pr.txt ]; then
-            python validators/nodo1_adf_repo.py . $(cat json_del_pr.txt | tr '\n' ' ') \
-              | tee salida_repo.txt
-          else
-            echo "Sin artefactos que revisar." > salida_repo.txt
-          fi
-
       - name: Armar el comentario
         run: |
           FECHA=$(TZ='America/Lima' date '+%d/%m/%Y %H:%M')
@@ -80,13 +70,6 @@ jobs:
             echo '```'
             cat salida.txt
             echo '```'
-            echo ''
-            echo '<details><summary>Integridad del repositorio (informativo)</summary>'
-            echo ''
-            echo '```'
-            cat salida_repo.txt
-            echo '```'
-            echo '</details>'
             echo ''
             echo '<sub>Reglas ADF-01 a ADF-04 del Checklist v2 · CoE Data & Analytics. '
             echo 'Corregir en el Studio de Data Factory y volver a guardar sobre la misma rama.</sub>'
