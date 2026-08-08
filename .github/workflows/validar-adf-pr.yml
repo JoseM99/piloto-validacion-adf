@@ -4,8 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'pipeline/**'
-      - 'dataset/**'
+      - '**.json'
 
 concurrency:
   group: validar-adf-${{ github.event.pull_request.number }}
@@ -35,6 +34,7 @@ jobs:
             > todos.txt
 
           grep -E '^(pipeline|dataset)/.*\.json$' todos.txt > artefactos.txt || true
+          grep -E '\.json$' todos.txt > json_del_pr.txt || true
 
           echo "cantidad=$(wc -l < artefactos.txt)" >> "$GITHUB_OUTPUT"
           echo "Artefactos de Data Factory en el PR:"
@@ -56,8 +56,8 @@ jobs:
       - name: Integridad del repositorio
         continue-on-error: true
         run: |
-          if [ -s artefactos.txt ]; then
-            python validators/nodo1_adf_repo.py . $(cat artefactos.txt | tr '\n' ' ') \
+          if [ -s json_del_pr.txt ]; then
+            python validators/nodo1_adf_repo.py . $(cat json_del_pr.txt | tr '\n' ' ') \
               | tee salida_repo.txt
           else
             echo "Sin artefactos que revisar." > salida_repo.txt
