@@ -1,6 +1,40 @@
 {
-  "version": "1.1.0",
-  "_descripcion": "Listas blancas del validador de PR de Azure Data Factory. Fuente: Checklist v2 CoE Data & Analytics, filas 3 a 6. Editar aqui, nunca en el codigo.",
+  "version": "1.2.0",
+  "_descripcion": "Listas blancas del validador de PR de Azure Data Factory. Fuente: Checklist v2 CoE Data & Analytics, filas 1 a 6. Editar aqui, nunca en el codigo.",
+  "gobierno_pr": {
+    "_descripcion": "Reglas de GitHub del Checklist v2, filas 1 y 2. Se validan sobre el Pull Request, no sobre los artefactos.",
+    "rama": {
+      "id": "GIT-01",
+      "checklist_nro": 1,
+      "criticidad": "OBL",
+      "estado": "activa",
+      "prefijos": [
+        "feature/",
+        "fix/"
+      ],
+      "patron_descripcion": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "_ejemplo": "feature/carga-saldos-rcc"
+    },
+    "estructura_pr": {
+      "id": "GIT-02",
+      "checklist_nro": 2,
+      "criticidad": "OBL",
+      "estado": "activa",
+      "secciones": [
+        "Datos generales",
+        "Check list",
+        "Tipo de cambio",
+        "Capa afectada"
+      ],
+      "campos_datos_generales": [
+        "Categoria",
+        "Objetivo",
+        "Validacion en DEV"
+      ],
+      "largo_minimo_descripcion": 40,
+      "_nota": "La plantilla vive en .github/pull_request_template.md. Las secciones se buscan sin distinguir mayusculas ni tildes."
+    }
+  },
   "carpetas_raiz_repo": {
     "pipeline": "pipeline",
     "dataset": "dataset",
@@ -134,36 +168,5 @@
       "responsable": "Area dueña del estandar",
       "efecto": "Solo se aceptan las dos rutas ejemplificadas; cualquier otra se reporta como hallazgo hasta ampliar la lista."
     }
-  ],
-  "integridad_repo": {
-    "_descripcion": "Comprobaciones de integridad del repositorio de Data Factory. NO figuran en el Checklist v2: son informativas y no bloquean el pase.",
-    "carpetas_oficiales": [
-      "pipeline",
-      "dataset",
-      "linkedService",
-      "trigger",
-      "dataflow",
-      "integrationRuntime",
-      "factory",
-      "managedVirtualNetwork",
-      "credential"
-    ],
-    "archivos_permitidos_en_raiz": [
-      "publish_config.json"
-    ],
-    "artefacto_fuera_de_carpeta": {
-      "id": "ADF-05",
-      "checklist_nro": null,
-      "criticidad": "OPC",
-      "estado": "propuesta",
-      "_nota": "Un .json fuera de las carpetas que crea el Studio indica un commit manual: el artefacto no sera reconocido por Data Factory."
-    },
-    "nombre_no_coincide": {
-      "id": "ADF-06",
-      "checklist_nro": null,
-      "criticidad": "OPC",
-      "estado": "propuesta",
-      "_nota": "El Studio siempre nombra el archivo igual que la propiedad name. Si difieren, el artefacto se edito por fuera y puede romper referencias."
-    }
-  }
+  ]
 }
