@@ -1,0 +1,80 @@
+name: Validar gobierno del PR
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: gobierno-adf-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  gobierno:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Validar rama y estructura del Pull Request
+        id: gobierno
+        continue-on-error: true
+        env:
+          PR_RAMA: ${{ github.head_ref }}
+          PR_CUERPO: ${{ github.event.pull_request.body }}
+        run: |
+          set -o pipefail
+          python validators/nodo1_gobierno_pr.py | tee salida_gobierno.txt
+
+      - name: Armar el comentario
+        run: |
+          FECHA=$(TZ='America/Lima' date '+%d/%m/%Y %H:%M')
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          {
+            echo '<!-- validador-gobierno-adf -->'
+            echo '## Gobierno del Pull Request'
+            echo ''
+            if [ "${{ steps.gobierno.outcome }}" = "success" ]; then
+              echo '**Resultado: APROBADO** — la rama y la descripcion del pase cumplen el estandar.'
+            else
+              echo '**Resultado: RECHAZADO** — la rama o la descripcion del pase no cumplen el estandar.'
+            fi
+            echo ''
+            echo '```'
+            cat salida_gobierno.txt
+            echo '```'
+            echo ''
+            echo '<sub>Reglas GIT-01 y GIT-02 · filas 1 y 2 del Checklist v2 · CoE Data & Analytics. '
+            echo 'Corregir el nombre de la rama o completar la plantilla del pase y volver a guardar.</sub>'
+            echo ''
+            echo "<sub>Actualizado: ${FECHA} (hora de Lima) · <a href=\"${RUN_URL}\">run #${{ github.run_number }}</a></sub>"
+          } > comentario_gobierno.md
+
+      - name: Publicar el comentario en el Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          ID=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
+                 --jq '.[] | select(.body | contains("<!-- validador-gobierno-adf -->")) | .id' \
+               | head -n 1)
+
+          if [ -n "$ID" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${ID}" \
+              -F body=@comentario_gobierno.md > /dev/null
+            echo "Comentario actualizado."
+          else
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+              -F body=@comentario_gobierno.md > /dev/null
+            echo "Comentario publicado."
+          fi
+
+      - name: Bloquear el pase si el gobierno no cumple
+        if: steps.gobierno.outcome != 'success'
+        run: |
+          echo "El Pull Request no cumple las reglas de gobierno del estandar."
+          exit 1
