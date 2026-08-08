@@ -117,11 +117,18 @@ def reportar(hallazgos):
 
 
 def main():
-    cfg = cargar_config()
+    try:
+        cfg = cargar_config()
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"ERROR DE CONFIGURACION: no se pudo leer {RUTA_CONFIG}.")
+        print(f"  {str(e)[:150]}")
+        return 1
     bloque = cfg.get("gobierno_pr")
     if not bloque:
-        print("El catalogo no tiene el bloque gobierno_pr. Nada que validar.")
-        return 0
+        # Falla cerrado: sin catalogo no se puede afirmar que el PR cumpla.
+        print("ERROR DE CONFIGURACION: el catalogo no tiene el bloque gobierno_pr.")
+        print("Revisar config/adf_listas.json en la rama base del Pull Request.")
+        return 1
 
     rama = os.environ.get("PR_RAMA", "").strip()
     cuerpo = os.environ.get("PR_CUERPO", "")
