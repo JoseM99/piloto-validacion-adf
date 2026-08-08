@@ -1,1 +1,1 @@
-   Prueba del validador de gobierno del PR.
+Prueba del validador
